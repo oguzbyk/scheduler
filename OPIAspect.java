@@ -38,13 +38,6 @@ public class OPIAspect {
       FlightRecord flightRecord = null;
       long methodStartTimeInMillis = Calendar.getInstance().getTimeInMillis();
       OpiDebug.print("OPIAspect.methodAdvice accessing: " + methodName);
-      if (FlightRecorder.isEnabled()) {
-         flightRecord = FlightRecord.builder()
-                 .methodName(methodName)
-                 .parameters(invocation.getArguments())
-                 .startTime(methodStartTimeInMillis)
-                 .build();
-      }
       boolean fromProvClient = false;
       boolean costCalculated = false;
       try {
@@ -88,8 +81,13 @@ public class OPIAspect {
       }
       finally {
          if (FlightRecorder.isEnabled()) {
-            flightRecord.setResults(resultArray);
-            flightRecord.setStopTime(Calendar.getInstance().getTimeInMillis());
+            flightRecord = FlightRecord.builder()
+                    .methodName(methodName)
+                    .parameters(invocation.getArguments())
+                    .startTime(methodStartTimeInMillis)
+                    .results(resultArray)
+                    .stopTime(Calendar.getInstance().getTimeInMillis())
+                    .build();
             FlightRecorder.log(FlightRecorder.jsonConverter(flightRecord));
          }
          if (fromProvClient && costCalculated){
